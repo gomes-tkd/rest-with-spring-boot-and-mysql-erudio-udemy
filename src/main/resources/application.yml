@@ -1,3 +1,20 @@
 spring:
   application:
     name: rest-with-spring-boot-and-mysql-erudio-udemy
+  datasource:
+    url: jdbc:mysql://localhost:3306/rest_with_spring_boot_and_mysql_erudio_udemy?useTimezone=true&serverTimeZone=UTC
+    username: gomes-tkd
+    password: admin123
+  jpa:
+    hibernate:
+      ddl-auto: update
+    properties:
+      hibernate:
+        dialect: org.hibernate.dialect.MySQLDialect
+
+logging:
+  level:
+    root: INFO
+    org.springframework.web: INFO
+    org.hibernate.SQL: DEBUG
+    org.hibernate.type.descriptor.sql.BasicBinder: TRACE
