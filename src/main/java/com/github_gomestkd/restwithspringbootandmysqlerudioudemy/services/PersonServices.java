@@ -1,8 +1,10 @@
 package com.github_gomestkd.restwithspringbootandmysqlerudioudemy.services;
 
+import com.github_gomestkd.restwithspringbootandmysqlerudioudemy.dto.PersonDTO;
 import com.github_gomestkd.restwithspringbootandmysqlerudioudemy.exception.ResourceNotFoundException;
 import com.github_gomestkd.restwithspringbootandmysqlerudioudemy.model.Person;
 import com.github_gomestkd.restwithspringbootandmysqlerudioudemy.repositories.PersonRepository;
+import static com.github_gomestkd.restwithspringbootandmysqlerudioudemy.mapper.ObjectMapper.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -18,20 +20,20 @@ public class PersonServices {
     @Autowired
     private PersonRepository repository;
 
-    public List<Person> findAll() {
+    public List<PersonDTO> findAll() {
         logger.debug("[START] findAll - Finding all people...");
         List<Person> people = repository.findAll();
         logger.info("[SUCCESS] findAll - Found {} people.", people.size());
-        return people;
+        return  parseListObjects(people, PersonDTO.class);
     }
 
-    public Person findById(Long id) {
+    public PersonDTO findById(Long id) {
         logger.debug("[START] findById - Attempting to find person with ID: {}", id);
         try {
             Person person = repository.findById(id)
                     .orElseThrow(() -> new ResourceNotFoundException("No records found for this ID: " + id));
             logger.info("[SUCCESS] findById - Successfully found person with ID: {}", id);
-            return person;
+            return parseObject(person, PersonDTO.class);
         } catch (ResourceNotFoundException e) {
             logger.warn("[NOT_FOUND] findById - Person not found with ID: {}. Reason: {}", id, e.getMessage());
             throw e;
@@ -41,34 +43,35 @@ public class PersonServices {
         }
     }
 
-    public Person create(Person person) {
+    public PersonDTO create(PersonDTO person) {
         logger.debug("[START] create - Attempting to create a new person. Input: {}", person.toString());
         try {
-            Person createdPerson = repository.save(person);
+            Person createdPerson = parseObject(person, Person.class);
+
             logger.info("[SUCCESS] create - Successfully created person with ID: {}", createdPerson.getId());
-            return createdPerson;
+            return parseObject(repository.save(createdPerson), PersonDTO.class);
         } catch (Exception e) {
-            logger.error("[ERROR] create - Failed to create person. Input: {}. Reason: {}", person.toString(), e.getMessage(), e);
+            logger.error("[ERROR] create - Failed to create person. Input: {}. Reason: {}", person, e.getMessage(), e);
             throw e;
         }
     }
 
-    public Person update(Person person) {
+    public PersonDTO update(PersonDTO person) {
         Long id = person.getId();
-        logger.debug("[START] update - Attempting to update person with ID: {}. Input: {}", id, person.toString());
+        logger.debug("[START] update - Attempting to update person with ID: {}. Input: {}", id, person);
 
         try {
-            var entity = repository.findById(id)
+            Person updatedPerson = repository.findById(id)
                     .orElseThrow(() -> new ResourceNotFoundException("No records found for this ID: " + id));
 
-            entity.setFirstName(person.getFirstName());
-            entity.setLastName(person.getLastName());
-            entity.setAddress(person.getAddress());
-            entity.setGender(person.getGender());
+            updatedPerson.setFirstName(person.getFirstName());
+            updatedPerson.setLastName(person.getLastName());
+            updatedPerson.setAddress(person.getAddress());
+            updatedPerson.setGender(person.getGender());
 
-            Person updatedPerson = repository.save(entity);
+
             logger.info("[SUCCESS] update - Successfully updated person with ID: {}", id);
-            return updatedPerson;
+            return parseObject(repository.save(updatedPerson), PersonDTO.class);
         } catch (ResourceNotFoundException e) {
             logger.warn("[NOT_FOUND] update - Person to update not found with ID: {}. Reason: {}", id, e.getMessage());
             throw e;
@@ -81,7 +84,7 @@ public class PersonServices {
     public void delete(Long id) {
         logger.debug("[START] delete - Attempting to delete person with ID: {}", id);
         try {
-            var entity = repository.findById(id)
+            Person entity = repository.findById(id)
                     .orElseThrow(() -> new ResourceNotFoundException("No records found for this ID: " + id));
 
             repository.delete(entity);
