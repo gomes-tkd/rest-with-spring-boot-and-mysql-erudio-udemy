@@ -1,6 +1,7 @@
 package com.github_gomestkd.restwithspringbootandmysqlerudioudemy.exception.handle;
 
 import com.github_gomestkd.restwithspringbootandmysqlerudioudemy.exception.ExceptionResponde;
+import com.github_gomestkd.restwithspringbootandmysqlerudioudemy.exception.RequiredObjectIsNullException;
 import com.github_gomestkd.restwithspringbootandmysqlerudioudemy.exception.ResourceNotFoundException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -37,5 +38,16 @@ public class CustomEntityResponseHandler extends ResponseEntityExceptionHandler 
         );
 
         return new ResponseEntity<>(exceptionResponde, HttpStatus.NOT_FOUND);
+    }
+
+    @ExceptionHandler(RequiredObjectIsNullException.class)
+    public final ResponseEntity<ExceptionResponde> handleBadRequestExceptions(Exception ex, WebRequest request) {
+        ExceptionResponde exceptionResponde = new ExceptionResponde(
+                new Date(),
+                ex.getMessage(),
+                request.getDescription(false)
+        );
+
+        return new ResponseEntity<>(exceptionResponde, HttpStatus.BAD_REQUEST);
     }
 }

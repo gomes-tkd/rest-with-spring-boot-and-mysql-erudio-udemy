@@ -2,6 +2,7 @@ package com.github_gomestkd.restwithspringbootandmysqlerudioudemy.services;
 
 import com.github_gomestkd.restwithspringbootandmysqlerudioudemy.controllers.PersonController;
 import com.github_gomestkd.restwithspringbootandmysqlerudioudemy.dto.PersonDTO;
+import com.github_gomestkd.restwithspringbootandmysqlerudioudemy.exception.RequiredObjectIsNullException;
 import com.github_gomestkd.restwithspringbootandmysqlerudioudemy.exception.ResourceNotFoundException;
 import com.github_gomestkd.restwithspringbootandmysqlerudioudemy.model.Person;
 import com.github_gomestkd.restwithspringbootandmysqlerudioudemy.repositories.PersonRepository;
@@ -57,6 +58,10 @@ public class PersonServices {
     }
 
     public PersonDTO create(PersonDTO person) {
+        if (person == null) {
+            throw new RequiredObjectIsNullException();
+        }
+
         logger.debug("[START] create - Attempting to create a new person. Input: {}", person.toString());
         try {
             Person createdPerson = parseObject(person, Person.class);
@@ -75,6 +80,10 @@ public class PersonServices {
     }
 
     public PersonDTO update(PersonDTO person) {
+        if (person == null) {
+            throw new RequiredObjectIsNullException();
+        }
+
         Long id = person.getId();
         logger.debug("[START] update - Attempting to update person with ID: {}. Input: {}", id, person);
 
