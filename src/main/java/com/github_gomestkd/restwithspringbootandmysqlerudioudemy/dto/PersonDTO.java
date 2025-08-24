@@ -3,13 +3,14 @@ package com.github_gomestkd.restwithspringbootandmysqlerudioudemy.dto;
 import com.fasterxml.jackson.annotation.*;
 import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 import com.github_gomestkd.restwithspringbootandmysqlerudioudemy.serialization.GenderSerializer;
+import org.springframework.hateoas.RepresentationModel;
 
 import java.io.Serializable;
 import java.util.Objects;
 
 @JsonFilter("PersonFilter")
 @JsonPropertyOrder({"id", "first_name", "last_name", "gender", "address"})
-public class PersonDTO implements Serializable {
+public class PersonDTO extends RepresentationModel<PersonDTO> implements Serializable {
     private static final Long serialVersionUID = 1L;
 
     private Long id;
