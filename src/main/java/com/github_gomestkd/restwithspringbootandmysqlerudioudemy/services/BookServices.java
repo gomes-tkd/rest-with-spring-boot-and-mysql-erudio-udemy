@@ -1,15 +1,14 @@
 package com.github_gomestkd.restwithspringbootandmysqlerudioudemy.services;
 
+import com.github_gomestkd.restwithspringbootandmysqlerudioudemy.controllers.BookController;
 import com.github_gomestkd.restwithspringbootandmysqlerudioudemy.controllers.PersonController;
+import com.github_gomestkd.restwithspringbootandmysqlerudioudemy.dto.BookDTO;
 import com.github_gomestkd.restwithspringbootandmysqlerudioudemy.dto.PersonDTO;
 import com.github_gomestkd.restwithspringbootandmysqlerudioudemy.exception.RequiredObjectIsNullException;
 import com.github_gomestkd.restwithspringbootandmysqlerudioudemy.exception.ResourceNotFoundException;
+import com.github_gomestkd.restwithspringbootandmysqlerudioudemy.model.Book;
 import com.github_gomestkd.restwithspringbootandmysqlerudioudemy.model.Person;
-import com.github_gomestkd.restwithspringbootandmysqlerudioudemy.repositories.PersonRepository;
-import static com.github_gomestkd.restwithspringbootandmysqlerudioudemy.mapper.ObjectMapper.*;
-import static org.springframework.hateoas.server.mvc.WebMvcLinkBuilder.linkTo;
-import static org.springframework.hateoas.server.mvc.WebMvcLinkBuilder.methodOn;
-
+import com.github_gomestkd.restwithspringbootandmysqlerudioudemy.repositories.BookRepository;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -17,33 +16,37 @@ import org.springframework.stereotype.Service;
 
 import java.util.List;
 
-@Service
-public class PersonServices {
+import static com.github_gomestkd.restwithspringbootandmysqlerudioudemy.mapper.ObjectMapper.parseListObjects;
+import static com.github_gomestkd.restwithspringbootandmysqlerudioudemy.mapper.ObjectMapper.parseObject;
+import static org.springframework.hateoas.server.mvc.WebMvcLinkBuilder.linkTo;
+import static org.springframework.hateoas.server.mvc.WebMvcLinkBuilder.methodOn;
 
-    private final Logger logger = LoggerFactory.getLogger(PersonServices.class);
+@Service
+public class BookServices {
+    private final Logger logger = LoggerFactory.getLogger(BookServices.class);
 
     @Autowired
-    private PersonRepository repository;
+    private BookRepository repository;
 
-    public List<PersonDTO> findAll() {
-        logger.debug("[START] findAll - Finding all people...");
-        List<Person> people = repository.findAll();
-        logger.info("[SUCCESS] findAll - Found {} people.", people.size());
-        List<PersonDTO> peopleDTO =  parseListObjects(people, PersonDTO.class);
+    public List<BookDTO> findAll() {
+        logger.debug("[START] findAll - Finding all books...");
+        List<Book> books = repository.findAll();
+        logger.info("[SUCCESS] findAll - Found {} books.", books.size());
+        List<BookDTO> booksDTO =  parseListObjects(books, BookDTO.class);
 
-        peopleDTO.forEach(PersonServices::addHateoasLinks);
+        booksDTO.forEach(BookServices::addHateoasLinks);
 
-        return peopleDTO;
+        return booksDTO;
     }
 
-    public PersonDTO findById(Long id) {
+    public BookDTO findById(Long id) {
         logger.debug("[START] findById - Attempting to find person with ID: {}", id);
         try {
-            Person person = repository.findById(id)
+            Book book = repository.findById(id)
                     .orElseThrow(() -> new ResourceNotFoundException("No records found for this ID: " + id));
             logger.info("[SUCCESS] findById - Successfully found person with ID: {}", id);
 
-            PersonDTO dto = parseObject(person, PersonDTO.class);
+            BookDTO dto = parseObject(book, BookDTO.class);
 
             addHateoasLinks(dto);
 
@@ -57,18 +60,18 @@ public class PersonServices {
         }
     }
 
-    public PersonDTO create(PersonDTO person) {
+    public BookDTO create(BookDTO person) {
         if (person == null) {
             throw new RequiredObjectIsNullException();
         }
 
         logger.debug("[START] create - Attempting to create a new person. Input: {}", person);
         try {
-            Person createdPerson = parseObject(person, Person.class);
+            Book createdPerson = parseObject(person, Book.class);
 
             logger.info("[SUCCESS] create - Successfully created person with ID: {}", createdPerson.getId());
 
-            PersonDTO dto = parseObject(repository.save(createdPerson), PersonDTO.class);
+            BookDTO dto = parseObject(repository.save(createdPerson), BookDTO.class);
 
             addHateoasLinks(dto);
 
@@ -79,26 +82,25 @@ public class PersonServices {
         }
     }
 
-    public PersonDTO update(PersonDTO person) {
-        if (person == null) {
+    public BookDTO update(BookDTO book) {
+        if (book     == null) {
             throw new RequiredObjectIsNullException();
         }
 
-        Long id = person.getId();
-        logger.debug("[START] update - Attempting to update person with ID: {}. Input: {}", id, person);
+        Long id = book.getId();
+        logger.debug("[START] update - Attempting to update person with ID: {}. Input: {}", id, book);
 
         try {
-            Person updatedPerson = repository.findById(id)
+            Book updatedBook = repository.findById(id)
                     .orElseThrow(() -> new ResourceNotFoundException("No records found for this ID: " + id));
 
-            updatedPerson.setFirstName(person.getFirstName());
-            updatedPerson.setLastName(person.getLastName());
-            updatedPerson.setAddress(person.getAddress());
-            updatedPerson.setGender(person.getGender());
-
+            updatedBook.setTitle(book.getTitle());
+            updatedBook.setAuthor(book.getAuthor());
+            updatedBook.setPrice(book.getPrice());
+            updatedBook.setLaunchDate(book.getLaunchDate());
 
             logger.info("[SUCCESS] update - Successfully updated person with ID: {}", id);
-            PersonDTO dto = parseObject(repository.save(updatedPerson), PersonDTO.class);
+            BookDTO dto = parseObject(repository.save(updatedBook), BookDTO.class);
 
             addHateoasLinks(dto);
 
@@ -115,7 +117,7 @@ public class PersonServices {
     public void delete(Long id) {
         logger.debug("[START] delete - Attempting to delete person with ID: {}", id);
         try {
-            Person entity = repository.findById(id)
+            Book entity = repository.findById(id)
                     .orElseThrow(() -> new ResourceNotFoundException("No records found for this ID: " + id));
 
             repository.delete(entity);
@@ -129,11 +131,12 @@ public class PersonServices {
         }
     }
 
-    private static void addHateoasLinks(PersonDTO dto) {
-        dto.add(linkTo(methodOn(PersonController.class).findById(dto.getId())).withSelfRel().withType("GET"));
-        dto.add(linkTo(methodOn(PersonController.class).findAll()).withRel("findAll").withType("GET"));
-        dto.add(linkTo(methodOn(PersonController.class).create(dto)).withRel("create").withType("PUT"));
-        dto.add(linkTo(methodOn(PersonController.class).update(dto)).withRel("update").withType("PUT"));
-        dto.add(linkTo(methodOn(PersonController.class).delete(dto.getId())).withRel("delete").withType("DELETE"));
+    private static void addHateoasLinks(BookDTO dto) {
+        dto.add(linkTo(methodOn(BookController.class).findById(dto.getId())).withSelfRel().withType("GET"));
+        dto.add(linkTo(methodOn(BookController.class).findAll()).withRel("findAll").withType("GET"));
+        dto.add(linkTo(methodOn(BookController.class).create(dto)).withRel("create").withType("PUT"));
+        dto.add(linkTo(methodOn(BookController.class).update(dto)).withRel("update").withType("PUT"));
+        dto.add(linkTo(methodOn(BookController.class).delete(dto.getId())).withRel("delete").withType("DELETE"));
+        // Implement HATEOAS links for BookDTO if needed
     }
 }
